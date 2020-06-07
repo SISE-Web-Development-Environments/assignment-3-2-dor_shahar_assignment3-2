@@ -3,16 +3,14 @@ const axios = require('axios');
 var express = require("express");
 var router = express.Router();
 
-// router.get("/familyRecipes", function (req, res) {
-
-// });
 
 router.get("/randomRecipes", async function (req, res) {
-    axios.get('https://api.spoonacular.com/recipes/random?number=3/information?apiKey=c843cac92f5b4b71afc2002f22363f8f&includeNutrition=true')
+    axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`)
     .then(resp => {
-        res.send('200')
+        res.status(200).send(resp.data)
     })
     .catch(error => {
+        console.log(error)
         res.send('401')
     })    
 });
@@ -22,10 +20,6 @@ router.get("/randomRecipes", async function (req, res) {
 // });
 
 // router.post("/recipeDetailes", function (req, res) {
-    
-// });
-
-// router.post("/searchRecipe", function (req, res) {
     
 // });
 
