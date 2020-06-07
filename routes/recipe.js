@@ -21,10 +21,6 @@ router.post("/searchRecipe", function (req, res) {
     
 });
 
-router.post("/createNewRecipe", function (req, res) {
-    
-});
-
 router.post("/like", function (req, res) {
     
 });

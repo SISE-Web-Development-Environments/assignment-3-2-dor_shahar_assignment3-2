@@ -11,23 +11,31 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 router.post("/register", async function (req, res) {
-    let user_data = req.body;
-    if (await checkIfEmailExists(user_data.email))
-        res.send("Email already exists. Login or register with a different email.");
-    else {
-        await createUser(user_data).catch(error => console.log(error.message));
-        res.send("200");
+    try{
+        let user_data = req.body;
+        if (await checkIfEmailExists(user_data.email))
+            res.send("Email already exists. Login or register with a different email.");
+        else {
+            await createUser(user_data).catch(error => console.log(error.message));
+            res.send("200");
+        }
+    }catch(err) {
+        next(err);
     }
 });
 
 router.post("/login", async function (req, res, next) {
-    user = await checkUser(req.body.username, req.body.password);
-    if (user) {
-        req.session.user_id = user.user_id;
-        res.status(200).send("login succeeded")
+    try{
+        user = await checkUser(req.body.username, req.body.password);
+        if (user) {
+            req.session.user_id = user.user_id;
+            res.status(200).send("login succeeded")
+        }
+        else
+            res.status(401).send("Username or Password are incorrect");
+    } catch (err) {
+        next(err);
     }
-    else
-        res.status(401).send("Username or Password are incorrect");
 });
 
 checkUser = async function(username, password) {
