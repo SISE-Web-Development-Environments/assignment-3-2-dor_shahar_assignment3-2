@@ -5,6 +5,7 @@ var express = require("express");
 var router = express.Router();
 var bodyParser = require("body-parser");
 var app = express()
+var searcher = require("./utils/search_recipes")
 require("dotenv").config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -58,21 +59,14 @@ router.post('/addToFavorites', async function(req, res, next) {
     }
 });
 
-router.post('/addToSeen'), async function(req, res, next) {
+router.post("/getFavorites", async function (req, res, next) {
     try{
         let user_id = req.user.user_id;
-        let recipe_to_seen = req.body.recipe;
-        
-        if(!await isSeen(user_id, recipe_to_seen))
-            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
-        res.send(200);
-    } catch(err) {
+        my_favorites = await getUserfavorites(user_id);
+        res.send(my_recipes);
+    } catch (err) {
         next(err);
     }
-}
-
-router.post("/getFavorites", function (req, res) {
-    res.send("favorites")
 });
 
 router.get("/myRecipes", async function (req, res, next) {
@@ -80,6 +74,16 @@ router.get("/myRecipes", async function (req, res, next) {
         let user_id = req.user.user_id;
         my_recipes = await getUserRecipes(user_id);
         res.send(my_recipes);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/myFamilyRecipes", async function (req, res, next) {
+    try{
+        let user_id = req.user.user_id;
+        my_family_recipes = await getUserFamilyRecipes(user_id);
+        res.send(my_family_recipes);
     } catch (err) {
         next(err);
     }
@@ -94,6 +98,7 @@ getUserRecipes = async function(user_id) {
             preperation_time,
             popularity,
             vegeterian,
+            vegan,
             gluten,
             num_of_dishes
         } = my_recipes
@@ -102,11 +107,48 @@ getUserRecipes = async function(user_id) {
             name: name,
             preperationTime: preperation_time,
             popularity: popularity,
-            veganOrVegeterian: vegeterian,
+            vegeterian: vegeterian,
+            vegan: vegan,
             isGlutenFree: gluten,
             dishesNum: num_of_dishes
         }
     })
+}
+
+getUserFamilyRecipes = async function(user_id) {
+    my_family_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[familyRecipes] WHERE [created_by]=${user_id}`)
+    return my_family_recipes.map((my_family_recipes) => {
+        const {
+            image,
+            name,
+            preperation_time,
+            popularity,
+            vegeterian,
+            vegan,
+            gluten,
+            num_of_dishes
+        } = my_family_recipes
+        return {
+            image: image,
+            name: name,
+            preperationTime: preperation_time,
+            popularity: popularity,
+            vegeterian: vegeterian,
+            vegan: vegan,
+            isGlutenFree: gluten,
+            dishesNum: num_of_dishes
+        }
+    })
+}
+
+router.post("/lastViewedRecipes", function (req, res) {
+    
+});
+
+getUserfavorites = async function(user_id) {
+    my_favorites_id = await DButils.execQuery(`SELECT [recipe_id] FROM [dbo].[favorites] WHERE [user_id]=${user_id}`);
+    favorite_recipes = await searcher.getRecipeDetails(my_favorites_id);
+    return favorite_recipes;
 }
 
 createRecipe = async function(recipe_data, creator_user_id) {
@@ -114,7 +156,8 @@ createRecipe = async function(recipe_data, creator_user_id) {
         image,
         name,
         preperationTime,
-        veganOrVegetarian,
+        vegan,
+        vegeterian,
         isGlutenFree,
         ingredients,
         instructions,
@@ -128,10 +171,11 @@ createRecipe = async function(recipe_data, creator_user_id) {
         '${instructions}',
         ${preperationTime},
         0,
-        ${veganOrVegetarian},
+        ${vegeterian},
         ${isGlutenFree},
         ${dishesNum},
-        ${creator_user_id}
+        ${creator_user_id},
+        ${vegan}
         )`)
 }
 

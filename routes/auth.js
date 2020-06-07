@@ -13,12 +13,15 @@ app.use(bodyParser.json());
 router.post("/register", async function (req, res) {
     try{
         let user_data = req.body;
-        if (await checkIfEmailExists(user_data.email))
-            res.send("Email already exists. Login or register with a different email.");
-        else {
-            await createUser(user_data).catch(error => console.log(error.message));
-            res.send("200");
+        try {
+            await checkIfEmailorUserNameExists(user_data.email, user_data.username);
+        } catch(err) {
+            res.send(err);
+            return;
         }
+        await createUser(user_data).catch(error => console.log(error.message));
+        res.send("200");
+        
     }catch(err) {
         next(err);
     }
@@ -59,10 +62,12 @@ checkUser = async function(username, password) {
     return user;
 }
 
-checkIfEmailExists = async function(email) {
-    const emails = await DButils.execQuery("SELECT email FROM [dbo].[users]")
-    if (!emails.find((x) => x.email == email))
-        return false;
+checkIfEmailorUserNameExists = async function(email, username) {
+    const users = await DButils.execQuery("SELECT * FROM [dbo].[users]")
+    if (users.find((x) => x.email == email))
+        throw "Email already exists in the system"
+    if (users.find((x) => x.username == username))
+        throw "Username already exists in the system"
     return true;
 }
 
@@ -78,7 +83,7 @@ createUser = async function(user_data) {
 
     hash_password = CryptoJS.SHA3(password).toString(CryptoJS.enc.Base64);
 
-    await DButils.execQuery(`INSERT INTO [dbo].[users] VALUES ('${username}','${hash_password}','${email}','${firstname}','${lastname}','${country}')`);
+    await DButils.execQuery(`INSERT INTO [dbo].[users] VALUES ('${username}','${hash_password}','${email}','${firstname}','${lastname}','${country}', NULL, NULL, NULL)`);
 }
 
 module.exports = router;
