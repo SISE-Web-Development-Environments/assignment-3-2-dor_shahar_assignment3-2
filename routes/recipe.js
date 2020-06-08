@@ -4,19 +4,18 @@ var express = require("express");
 var router = express.Router();
 
 /** returns 3 random recpies */
-router.get("/randomRecipes", async function (req, res) {
+router.get("/randomRecipes", async function (req, res, next) {
     axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`)
     .then(resp => {
         res.status(200).send(resp.data)
     })
     .catch(error => {
-        console.log(error)
-        res.send('401')
+        res.send('503')
     })    
 });
 
 
-router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (req, res, next) {
+router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (req, res) {
     try{
         search_params = {};
         search_params.query = req.params.searchQuery;
@@ -27,15 +26,19 @@ router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (r
         recipes_info =  await searchForRecipes(search_params);
         res.send(recipes_info);
     } catch(err) {
-            next(err)
+        res.status(404).sendStatus('There are no recipes that relates to the given query')
     }
 });
 
 /** adds like to a curtain recipe */
 router.post("/like", async function (req, res) {
-    let recipeID = req.body.recipe_id;
-    await addLikeToRecipe(recipeID);
-    res.send('200')  
+    try {
+        let recipeID = req.body.recipe_id;
+        await addLikeToRecipe(recipeID);
+        res.send('200')  
+    } catch(err) {
+        res.status(404).send('Recipe not found')  
+    }
 });
 
 /** adds like to a curtain recipe - helper */

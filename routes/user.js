@@ -37,7 +37,7 @@ router.post("/createNewRecipe", async function (req, res, next) {
 
         res.status(200).send("Recipe created");
     } catch (err) {
-        next(err);
+        res.status(406).send("There was a problem with the recipe details");
     }
 });
 
@@ -58,20 +58,7 @@ router.post('/addToFavorites', async function(req, res, next) {
     }
 });
 
-router.post('/addToSeen'), async function(req, res, next) {
-    try{
-        let user_id = req.user.user_id;
-        let recipe_to_seen = req.body.recipe;
-        
-        if(!await isSeen(user_id, recipe_to_seen))
-            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
-        res.send(200);
-    } catch(err) {
-        next(err);
-    }
-}
-
-router.post("/getFavorites", async function (req, res) {
+router.get("/getFavorites", async function (req, res, next) {
     try{
         let user_id = req.user.user_id;
         my_favorites = await getUserfavorites(user_id);
@@ -92,14 +79,14 @@ router.get("/myRecipes", async function (req, res, next) {
 });
 
 /** Returns the last vieweג recipes for the given user */
-router.get("/lastViewedRecipes", async function (req, res) {
+router.get("/lastViewedRecipes", async function (req, res, next) {
     try {
         let user_id = req.user.user_id;
         let recipes_ids = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
         let recipe_deatails = await searcher.getRecipeDetails(Object.values(recipes_ids[0]))
         res.status(200).send(recipe_deatails);
     } catch(err) {
-        res.status(404).send('Error: ' + err.message)
+        next(err);
     }
 });
 
@@ -119,10 +106,11 @@ router.get("/myFamilyRecipes", async function (req, res, next) {
         let recipe_id = req.body.recipe_id;
         let user_id = req.user.user_id;
         updateUserLastViewed(user_id, recipe_id);
+        addToSeen(user_id, recipe_id);
         let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);
         res.status(200).send(recipeDeatails);
     } catch(err){
-        res.status(404).send('Error: ' + err.message);
+        res.status(404).send("Error: Recipe wasn't found");
     }
 
 });
@@ -218,4 +206,14 @@ arrangeLastViewd = function(recipe_id, last_viewd){
     return orgenaized;
 }
 
+/** adds the given recipe to the user seen recipes in case it not already there */
+addToSeen = async function(user_id, recipe_id){
+    try{
+    let getSeenByUser = await DButils.execQuery(`SELECT * FROM [dbo].[Views] WHERE user_id = ${user_id} AND recipe_id = ${recipe_id}`);
+    if(getSeenByUser.length == 0)
+        await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_id}')`);
+    } catch(err){
+        console.log(err.message)
+    }
+}
 module.exports = router;
