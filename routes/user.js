@@ -5,6 +5,7 @@ var express = require("express");
 var router = express.Router();
 var bodyParser = require("body-parser");
 var app = express()
+var searcher = require("./utils/search_recipes")
 require("dotenv").config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -15,7 +16,6 @@ router. use(async function (req, res, next) {
         if(req.session && req.session.user_id){
             const id = req.session.user_id;
             const user = (await DButils.execQuery(`SELECT * FROM [dbo].[users] WHERE user_id=${id}`));
-            // const user = "";
             if(user.length>0){
                 req.user = user[0];
                 next();
@@ -46,7 +46,7 @@ router.post('/addToFavorites', async function(req, res, next) {
         let user_id = req.user.user_id;
         let recipe_to_favorites = req.body.recipe;
         
-        if(await isFavorite(user_id, recipe_to_favorites)) {
+        if(!await isFavorite(user_id, recipe_to_favorites)) {
             await DButils.execQuery(`INSERT INTO [dbo].[favorites] VALUES ('${user_id}','${recipe_to_favorites}')`);
             res.status(200).send("Added to favorites successfully");
         }
@@ -71,8 +71,14 @@ router.post('/addToSeen'), async function(req, res, next) {
     }
 }
 
-router.post("/getFavorites", function (req, res) {
-    res.send("favorites")
+router.post("/getFavorites", async function (req, res) {
+    try{
+        let user_id = req.user.user_id;
+        my_favorites = await getUserfavorites(user_id);
+        res.send(my_favorites);
+    } catch (err) {
+        next(err);
+    }
 });
 
 router.get("/myRecipes", async function (req, res, next) {
@@ -123,9 +129,20 @@ getUserRecipes = async function(user_id) {
     })
 }
 
+isFavorite = async function(user_id, recipe_id) {
+    result = await DButils.execQuery(`SELECT * FROM [dbo].[favorites] WHERE [user_id]=${user_id} AND [recipe_id]=${recipe_id}`);
+    if(result.length == 0)
+        return false;
+    return true;
+}
+
 getUserfavorites = async function(user_id) {
-    my_favorites_id = await DButils.execQuery(`SELECT [recipe_id] FROM [dbo].[favorites] WHERE [user_id]=${user_id}`);
-    favorite_recipes = await searcher.getRecipeDetails(my_favorites_id);
+    my_favorites = await DButils.execQuery(`SELECT [recipe_id] FROM [dbo].[favorites] WHERE [user_id]=${user_id}`);
+    recipe_id = []
+    my_favorites.map((recipe) => {
+        recipe_id.push(recipe.recipe_id);
+    });
+    favorite_recipes = await searcher.getRecipeDetails(recipe_id);
     return favorite_recipes;
 }
 
