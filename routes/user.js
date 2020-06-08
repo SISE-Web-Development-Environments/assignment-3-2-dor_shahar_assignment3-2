@@ -5,6 +5,7 @@ var express = require("express");
 var router = express.Router();
 var bodyParser = require("body-parser");
 var app = express()
+search_recipes = require("./utils/search_recipes");
 require("dotenv").config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -83,6 +84,11 @@ router.get("/myRecipes", async function (req, res, next) {
     } catch (err) {
         next(err);
     }
+});
+
+router.post("/lastViewedRecipes", function (req, res) {
+    let recipes_ids = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
+    return search_recipes.getRecipeDetails(recipes_ids);
 });
 
 getUserRecipes = async function(user_id) {

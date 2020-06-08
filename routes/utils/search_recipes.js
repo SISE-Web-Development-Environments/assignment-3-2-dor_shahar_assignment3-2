@@ -8,6 +8,14 @@ getRecipeDetails = async function(recipes_id) {
     return relevant_data;
 }
 
+getRecipeExtraDetails = async function(recipes_id) {
+    let promises = [];
+    recipes_id.map((id) => promises.push(axios.get(`https://api.spoonacular.com/recipes/${id}/information?${process.env.spooncular_apiKey}`)));
+    let recipes_info = await Promise.all(promises);
+    relevant_data = getExtraData(recipes_info);
+    return relevant_data;
+}
+
 getRelevantData = function(recipes_data) {
     const {
         title,
@@ -29,4 +37,17 @@ getRelevantData = function(recipes_data) {
     }
 }
 
-exports.getRecipeDetails = this.getRecipeDetails;
+getExtraData = function(recipes_data) {
+    const {
+        extendedIngredients,
+        instructions,
+        servings
+    } = recipes_data.data;
+    return {
+        ingredients: extendedIngredients,
+        instructions: instructions,
+        serving_num: servings
+    }
+}
+
+exports.getRecipeDetails = getRecipeDetails;
