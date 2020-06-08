@@ -11,7 +11,7 @@ var app = express();
 var port = process.env.port;
 
 users_route = require("./routes/user");
-// recipes_route = require("./routes/recipe");
+recipes_route = require("./routes/recipe");
 auth_route = require("./routes/auth")
 
 app.use(logger("dev"))
@@ -27,7 +27,7 @@ app.use(session({
 );
 
 app.use("/user", users_route);
-// app.use("/recipe", recipes_route);
+app.use("/recipe", recipes_route);
 app.use(auth_route)
 
 

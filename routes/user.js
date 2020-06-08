@@ -89,6 +89,10 @@ router.get("/myFamilyRecipes", async function (req, res, next) {
     }
 });
 
+router.post("/lastViewedRecipes", function (req, res) {
+    
+});
+
 getUserRecipes = async function(user_id) {
     my_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[recipes] WHERE [created_by]=${user_id}`)
     return my_recipes.map((my_recipes) => {
@@ -140,10 +144,6 @@ getUserFamilyRecipes = async function(user_id) {
         }
     })
 }
-
-router.post("/lastViewedRecipes", function (req, res) {
-    
-});
 
 getUserfavorites = async function(user_id) {
     my_favorites_id = await DButils.execQuery(`SELECT [recipe_id] FROM [dbo].[favorites] WHERE [user_id]=${user_id}`);
