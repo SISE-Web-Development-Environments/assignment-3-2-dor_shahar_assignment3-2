@@ -5,7 +5,6 @@ var express = require("express");
 var router = express.Router();
 var bodyParser = require("body-parser");
 var app = express()
-var searcher = require("./utils/search_recipes")
 require("dotenv").config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -59,14 +58,21 @@ router.post('/addToFavorites', async function(req, res, next) {
     }
 });
 
-router.post("/getFavorites", async function (req, res, next) {
+router.post('/addToSeen'), async function(req, res, next) {
     try{
         let user_id = req.user.user_id;
-        my_favorites = await getUserfavorites(user_id);
-        res.send(my_recipes);
-    } catch (err) {
+        let recipe_to_seen = req.body.recipe;
+        
+        if(!await isSeen(user_id, recipe_to_seen))
+            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
+        res.send(200);
+    } catch(err) {
         next(err);
     }
+}
+
+router.post("/getFavorites", function (req, res) {
+    res.send("favorites")
 });
 
 router.get("/myRecipes", async function (req, res, next) {
@@ -102,7 +108,6 @@ getUserRecipes = async function(user_id) {
             preperation_time,
             popularity,
             vegeterian,
-            vegan,
             gluten,
             num_of_dishes
         } = my_recipes
@@ -111,34 +116,7 @@ getUserRecipes = async function(user_id) {
             name: name,
             preperationTime: preperation_time,
             popularity: popularity,
-            vegeterian: vegeterian,
-            vegan: vegan,
-            isGlutenFree: gluten,
-            dishesNum: num_of_dishes
-        }
-    })
-}
-
-getUserFamilyRecipes = async function(user_id) {
-    my_family_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[familyRecipes] WHERE [created_by]=${user_id}`)
-    return my_family_recipes.map((my_family_recipes) => {
-        const {
-            image,
-            name,
-            preperation_time,
-            popularity,
-            vegeterian,
-            vegan,
-            gluten,
-            num_of_dishes
-        } = my_family_recipes
-        return {
-            image: image,
-            name: name,
-            preperationTime: preperation_time,
-            popularity: popularity,
-            vegeterian: vegeterian,
-            vegan: vegan,
+            veganOrVegeterian: vegeterian,
             isGlutenFree: gluten,
             dishesNum: num_of_dishes
         }
@@ -156,8 +134,7 @@ createRecipe = async function(recipe_data, creator_user_id) {
         image,
         name,
         preperationTime,
-        vegan,
-        vegeterian,
+        veganOrVegetarian,
         isGlutenFree,
         ingredients,
         instructions,
@@ -171,11 +148,10 @@ createRecipe = async function(recipe_data, creator_user_id) {
         '${instructions}',
         ${preperationTime},
         0,
-        ${vegeterian},
+        ${veganOrVegetarian},
         ${isGlutenFree},
         ${dishesNum},
-        ${creator_user_id},
-        ${vegan}
+        ${creator_user_id}
         )`)
 }
 
