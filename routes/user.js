@@ -5,18 +5,17 @@ var express = require("express");
 var router = express.Router();
 var bodyParser = require("body-parser");
 var app = express()
-search_recipes = require("./utils/search_recipes");
+var searcher = require("./utils/search_recipes")
 require("dotenv").config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-router. use(async function (req, res, next) {
+router.use(async function (req, res, next) {
     try{
         if(req.session && req.session.user_id){
             const id = req.session.user_id;
             const user = (await DButils.execQuery(`SELECT * FROM [dbo].[users] WHERE user_id=${id}`));
-            // const user = "";
             if(user.length>0){
                 req.user = user[0];
                 next();
@@ -47,7 +46,7 @@ router.post('/addToFavorites', async function(req, res, next) {
         let user_id = req.user.user_id;
         let recipe_to_favorites = req.body.recipe;
         
-        if(await isFavorite(user_id, recipe_to_favorites)) {
+        if(!await isFavorite(user_id, recipe_to_favorites)) {
             await DButils.execQuery(`INSERT INTO [dbo].[favorites] VALUES ('${user_id}','${recipe_to_favorites}')`);
             res.status(200).send("Added to favorites successfully");
         }
@@ -72,8 +71,14 @@ router.post('/addToSeen'), async function(req, res, next) {
     }
 }
 
-router.post("/getFavorites", function (req, res) {
-    res.send("favorites")
+router.post("/getFavorites", async function (req, res) {
+    try{
+        let user_id = req.user.user_id;
+        my_favorites = await getUserfavorites(user_id);
+        res.send(my_favorites);
+    } catch (err) {
+        next(err);
+    }
 });
 
 router.get("/myRecipes", async function (req, res, next) {
@@ -86,10 +91,42 @@ router.get("/myRecipes", async function (req, res, next) {
     }
 });
 
-router.post("/lastViewedRecipes", function (req, res) {
-    let recipes_ids = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
-    return search_recipes.getRecipeDetails(recipes_ids);
+/** Returns the last vieweג recipes for the given user */
+router.get("/lastViewedRecipes", async function (req, res) {
+    try {
+        let user_id = req.user.user_id;
+        let recipes_ids = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
+        let recipe_deatails = await searcher.getRecipeDetails(Object.values(recipes_ids[0]))
+        res.status(200).send(recipe_deatails);
+    } catch(err) {
+        res.status(404).send('Error: ' + err.message)
+    }
 });
+
+router.get("/myFamilyRecipes", async function (req, res, next) {
+    try{
+        let user_id = req.user.user_id;
+        my_family_recipes = await getUserFamilyRecipes(user_id);
+        res.send(my_family_recipes);
+    } catch (err) {
+        next(err);
+    }
+});
+
+ /** Returns the Misiing Details of the recipe for display */
+ router.post("/recipeDetailes", async function (req, res) {
+    try {
+        let recipe_id = req.body.recipe_id;
+        let user_id = req.user.user_id;
+        updateUserLastViewed(user_id, recipe_id);
+        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);
+        res.status(200).send(recipeDeatails);
+    } catch(err){
+        res.status(404).send('Error: ' + err.message);
+    }
+
+});
+
 
 getUserRecipes = async function(user_id) {
     my_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[recipes] WHERE [created_by]=${user_id}`)
@@ -113,6 +150,23 @@ getUserRecipes = async function(user_id) {
             dishesNum: num_of_dishes
         }
     })
+}
+
+isFavorite = async function(user_id, recipe_id) {
+    result = await DButils.execQuery(`SELECT * FROM [dbo].[favorites] WHERE [user_id]=${user_id} AND [recipe_id]=${recipe_id}`);
+    if(result.length == 0)
+        return false;
+    return true;
+}
+
+getUserfavorites = async function(user_id) {
+    my_favorites = await DButils.execQuery(`SELECT [recipe_id] FROM [dbo].[favorites] WHERE [user_id]=${user_id}`);
+    recipe_id = []
+    my_favorites.map((recipe) => {
+        recipe_id.push(recipe.recipe_id);
+    });
+    favorite_recipes = await searcher.getRecipeDetails(recipe_id);
+    return favorite_recipes;
 }
 
 createRecipe = async function(recipe_data, creator_user_id) {
@@ -139,6 +193,29 @@ createRecipe = async function(recipe_data, creator_user_id) {
         ${dishesNum},
         ${creator_user_id}
         )`)
+}
+
+/** updates the last viewd recipes according to the current viewed recipe */
+updateUserLastViewed = async function(user_id, recipe_id){
+    let user_last_viewd = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
+    user_last_viewd = arrangeLastViewd(recipe_id, user_last_viewd[0])
+    await DButils.execQuery(`UPDATE [dbo].[users] SET ls_1=${user_last_viewd.ls_1}, ls_2=${user_last_viewd.ls_2}, ls_3=${user_last_viewd.ls_3} WHERE user_id = ${user_id}`);
+}
+
+/** areange the last viewd recipes according to the current viewed recipe */
+arrangeLastViewd = function(recipe_id, last_viewd){
+    orgenaized = {
+        ls_1: recipe_id,
+        ls_2: last_viewd.ls_1,
+        ls_3: last_viewd.ls_2
+    }
+    if (recipe_id == last_viewd.ls_2){
+        orgenaized.ls_3 = last_viewd.ls_3
+    }
+    if (recipe_id == last_viewd.ls_1){
+        return last_viewd;
+    }
+    return orgenaized;
 }
 
 module.exports = router;
