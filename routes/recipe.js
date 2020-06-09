@@ -35,7 +35,7 @@ router.post("/like", async function (req, res) {
     try {
         let recipeID = req.body.recipe_id;
         await addLikeToRecipe(recipeID);
-        res.send('200')  
+        res.status(200).send("Popularity information updated") 
     } catch(err) {
         res.status(404).send('Recipe not found')  
     }

@@ -78,7 +78,7 @@ router.get("/myRecipes", async function (req, res, next) {
     }
 });
 
-/** Returns the last vieweג recipes for the given user */
+/** Returns the last viewed recipes for the given user */
 router.get("/lastViewedRecipes", async function (req, res, next) {
     try {
         let user_id = req.user.user_id;
