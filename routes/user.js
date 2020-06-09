@@ -11,7 +11,7 @@ require("dotenv").config();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-router. use(async function (req, res, next) {
+router.use(async function (req, res, next) {
     try{
         if(req.session && req.session.user_id){
             const id = req.session.user_id;
@@ -37,7 +37,7 @@ router.post("/createNewRecipe", async function (req, res, next) {
 
         res.status(200).send("Recipe created");
     } catch (err) {
-        next(err);
+        res.status(406).send("There was a problem with the recipe details");
     }
 });
 
@@ -58,20 +58,7 @@ router.post('/addToFavorites', async function(req, res, next) {
     }
 });
 
-router.post('/addToSeen'), async function(req, res, next) {
-    try{
-        let user_id = req.user.user_id;
-        let recipe_to_seen = req.body.recipe;
-        
-        if(!await isSeen(user_id, recipe_to_seen))
-            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
-        res.send(200);
-    } catch(err) {
-        next(err);
-    }
-}
-
-router.post("/getFavorites", async function (req, res) {
+router.get("/getFavorites", async function (req, res, next) {
     try{
         let user_id = req.user.user_id;
         my_favorites = await getUserfavorites(user_id);
@@ -91,6 +78,18 @@ router.get("/myRecipes", async function (req, res, next) {
     }
 });
 
+/** Returns the last vieweג recipes for the given user */
+router.get("/lastViewedRecipes", async function (req, res, next) {
+    try {
+        let user_id = req.user.user_id;
+        let recipes_ids = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
+        let recipe_deatails = await searcher.getRecipeDetails(Object.values(recipes_ids[0]))
+        res.status(200).send(recipe_deatails);
+    } catch(err) {
+        next(err);
+    }
+});
+
 router.get("/myFamilyRecipes", async function (req, res, next) {
     try{
         let user_id = req.user.user_id;
@@ -101,9 +100,21 @@ router.get("/myFamilyRecipes", async function (req, res, next) {
     }
 });
 
-router.post("/lastViewedRecipes", function (req, res) {
-    
+ /** Returns the Misiing Details of the recipe for display */
+ router.post("/recipeDetailes", async function (req, res) {
+    try {
+        let recipe_id = req.body.recipe_id;
+        let user_id = req.user.user_id;
+        updateUserLastViewed(user_id, recipe_id);
+        addToSeen(user_id, recipe_id);
+        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);
+        res.status(200).send(recipeDeatails);
+    } catch(err){
+        res.status(404).send("Error: Recipe wasn't found");
+    }
+
 });
+
 
 getUserRecipes = async function(user_id) {
     my_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[recipes] WHERE [created_by]=${user_id}`)
@@ -172,4 +183,37 @@ createRecipe = async function(recipe_data, creator_user_id) {
         )`)
 }
 
+/** updates the last viewd recipes according to the current viewed recipe */
+updateUserLastViewed = async function(user_id, recipe_id){
+    let user_last_viewd = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
+    user_last_viewd = arrangeLastViewd(recipe_id, user_last_viewd[0])
+    await DButils.execQuery(`UPDATE [dbo].[users] SET ls_1=${user_last_viewd.ls_1}, ls_2=${user_last_viewd.ls_2}, ls_3=${user_last_viewd.ls_3} WHERE user_id = ${user_id}`);
+}
+
+/** areange the last viewd recipes according to the current viewed recipe */
+arrangeLastViewd = function(recipe_id, last_viewd){
+    orgenaized = {
+        ls_1: recipe_id,
+        ls_2: last_viewd.ls_1,
+        ls_3: last_viewd.ls_2
+    }
+    if (recipe_id == last_viewd.ls_2){
+        orgenaized.ls_3 = last_viewd.ls_3
+    }
+    if (recipe_id == last_viewd.ls_1){
+        return last_viewd;
+    }
+    return orgenaized;
+}
+
+/** adds the given recipe to the user seen recipes in case it not already there */
+addToSeen = async function(user_id, recipe_id){
+    try{
+    let getSeenByUser = await DButils.execQuery(`SELECT * FROM [dbo].[Views] WHERE user_id = ${user_id} AND recipe_id = ${recipe_id}`);
+    if(getSeenByUser.length == 0)
+        await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_id}')`);
+    } catch(err){
+        console.log(err.message)
+    }
+}
 module.exports = router;

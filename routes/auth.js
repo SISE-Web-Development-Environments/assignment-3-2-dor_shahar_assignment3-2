@@ -14,7 +14,9 @@ router.post("/register", async function (req, res) {
     try{
         let user_data = req.body;
         if (await checkIfEmailExists(user_data.email))
-            res.send("Email already exists. Login or register with a different email.");
+            res.status(406).send("Email already exists. Login or register with a different email.");
+        else if (await checkIfUsernameExists(user_data.username))
+            res.status(406).send("Username already exists. Login or register with a different username.");
         else {
             await createUser(user_data).catch(error => console.log(error.message));
             res.send("200");
@@ -32,7 +34,7 @@ router.post("/login", async function (req, res, next) {
             res.status(200).send("login succeeded")
         }
         else
-            res.status(401).send("Username or Password are incorrect");
+            res.status(404).send("Username or Password are incorrect");
     } catch (err) {
         next(err);
     }
@@ -66,6 +68,13 @@ checkIfEmailExists = async function(email) {
     return true;
 }
 
+checkIfUsernameExists = async function(username) {
+    const usernames = await DButils.execQuery("SELECT username FROM [dbo].[users]")
+    if (!usernames.find((x) => x.username == username))
+        return false;
+    return true;
+}
+
 createUser = async function(user_data) {
     const {
         username,
@@ -73,7 +82,8 @@ createUser = async function(user_data) {
         lastname,
         country,
         password,
-        email
+        email,
+        profile_image
     } = user_data;
 
     hash_password = CryptoJS.SHA3(password).toString(CryptoJS.enc.Base64);

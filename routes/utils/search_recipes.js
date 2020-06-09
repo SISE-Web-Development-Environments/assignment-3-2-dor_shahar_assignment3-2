@@ -8,6 +8,14 @@ exports.getRecipeDetails = async function(recipes_id) {
     return relevant_data;
 }
 
+exports.getRecipeExtraDetails = async function(recipes_id) {
+    let promises = [];
+    recipes_id.map((id) => promises.push(axios.get(`https://api.spoonacular.com/recipes/${id}/information?apiKey=${process.env.spooncular_apiKey}`)));
+    let recipes_info = await Promise.all(promises);
+    relevant_data = getExtraData(recipes_info);
+    return relevant_data;
+}
+
 getRelevantData = function(recipes_data) {
     return recipes_data.map((recipes_data) => {
         const {
@@ -27,6 +35,21 @@ getRelevantData = function(recipes_data) {
             vegan: vegan,
             Vegetarian: vegeterian,
             isGlutenFree: glutenFree
+        }
+    });
+}
+
+getExtraData = function(recipes_data) {
+    return recipes_data.map((recipes_data) => {
+        const {
+            extendedIngredients,
+            instructions,
+            servings
+        } = recipes_data.data;
+        return {
+            ingredients: extendedIngredients,
+            instructions: instructions,
+            serving_num: servings
         }
     });
 }
