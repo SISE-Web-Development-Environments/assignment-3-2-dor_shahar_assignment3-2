@@ -10,6 +10,6 @@ IDs:
 
 Develope Time:
 
-	We think the develope time for the server side will take about 3-4 days of work
+	The develope time for the server side took about 3-4 days of work
 	and the client side 3-4 days as well. we also think that it will take about a day or two
 	to create the connection between the two.
