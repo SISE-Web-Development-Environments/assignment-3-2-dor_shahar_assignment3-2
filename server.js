@@ -10,6 +10,10 @@ require("dotenv").config();
 var app = express();
 var port = process.env.PORT || 3000;
 
+var cors = require('cors');
+app.use(cors());
+app.options("*", cors());
+
 users_route = require("./routes/user");
 recipes_route = require("./routes/recipe");
 auth_route = require("./routes/auth")

@@ -10,7 +10,7 @@ require("dotenv").config();
 var app = express();
 var port = server.listen(process.env.PORT || 3000);
 
-var cors = require('cors')
+var cors = require('cors');
 app.use(cors());
 app.options("*", cors());
 
