@@ -122,20 +122,60 @@ getUserRecipes = async function(user_id) {
         const {
             image,
             name,
+            ingredients,
+            instructions,
             preperation_time,
             popularity,
             vegeterian,
+            vegan,
             gluten,
             num_of_dishes
         } = my_recipes
         return {
             image: image,
             name: name,
+            ingredients: ingredients,
+            instructions: instructions,
             preperationTime: preperation_time,
             popularity: popularity,
-            veganOrVegeterian: vegeterian,
+            vegeterian: vegeterian,
+            vegan: vegan,
             isGlutenFree: gluten,
             dishesNum: num_of_dishes
+        }
+    })
+}
+
+getUserFamilyRecipes = async function(user_id) {
+    my_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[familyRecipes] WHERE [created_by]=${user_id}`)
+    return my_recipes.map((my_recipes) => {
+        const {
+            image,
+            name,
+            ingredients,
+            instructions,
+            preperation_time,
+            popularity,
+            vegeterian,
+            vegan,
+            gluten,
+            num_of_dishes,
+            given_by,
+            preperation_events
+        } = my_recipes
+        return {
+            image: image,
+            name: name,
+            ingredients: ingredients,
+            instructions: instructions,
+            preperationTime: preperation_time,
+            popularity: popularity,
+            vegeterian: vegeterian,
+            vegan: vegan,
+            isGlutenFree: gluten,
+            dishesNum: num_of_dishes,
+            givenBy: given_by,
+            preperationEvents: preperation_events
         }
     })
 }
@@ -216,4 +256,7 @@ addToSeen = async function(user_id, recipe_id){
         console.log(err.message)
     }
 }
+
+
+
 module.exports = router;

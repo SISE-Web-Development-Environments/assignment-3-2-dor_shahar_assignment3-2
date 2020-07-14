@@ -2,6 +2,7 @@ const DButils = require(".././DButils");
 const axios = require('axios');
 var express = require("express");
 var router = express.Router();
+var searcher = require("./utils/search_recipes");
 
 /** returns 3 random recpies */
 router.get("/randomRecipes", async function (req, res) {
