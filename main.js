@@ -8,7 +8,7 @@ var session = require("client-sessions")
 require("dotenv").config();
 
 var app = express();
-var port = process.env.port;
+var port = process.env.port || 3000;
 
 users_route = require("./routes/user");
 recipes_route = require("./routes/recipe");
