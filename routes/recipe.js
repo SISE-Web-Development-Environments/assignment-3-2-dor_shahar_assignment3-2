@@ -4,7 +4,7 @@ var express = require("express");
 var router = express.Router();
 
 /** returns 3 random recpies */
-router.get("/randomRecipes", async function (req, res, next) {
+router.get("/randomRecipes", async function (req, res) {
     axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`)
     .then(resp => {
         res.status(200).send(resp.data)
