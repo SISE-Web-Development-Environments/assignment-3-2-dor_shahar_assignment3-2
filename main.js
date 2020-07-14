@@ -11,7 +11,8 @@ var app = express();
 var port = server.listen(process.env.PORT || 3000);
 
 var cors = require('cors')
-app.use(cors()) 
+app.use(cors());
+app.options("*", cors());
 
 users_route = require("./routes/user");
 recipes_route = require("./routes/recipe");
