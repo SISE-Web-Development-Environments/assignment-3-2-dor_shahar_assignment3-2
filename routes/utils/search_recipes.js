@@ -12,7 +12,7 @@ exports.getRecipeExtraDetails = async function(recipes_id) {
     let promises = [];
     recipes_id.map((id) => promises.push(axios.get(`https://api.spoonacular.com/recipes/${id}/information?apiKey=${process.env.spooncular_apiKey}`)));
     let recipes_info = await Promise.all(promises);
-    relevant_data = getExtraData(recipes_info);
+    relevant_data = getAllData(recipes_info);
     return relevant_data;
 }
 
