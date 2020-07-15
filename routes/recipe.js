@@ -16,7 +16,7 @@ router.get("/randomRecipes", async function (req, res) {
 });
 
  /** Returns the Misiing Details of the recipe for display */
- router.post("/recipeDetailes", async function (req, res) {
+ router.get("/recipeDetails", async function (req, res) {
     try {
         let recipe_id = req.body.recipe_id;
         let user_id = req.user.user_id;
