@@ -42,6 +42,7 @@ getRelevantData = function(recipes_data) {
 getAllData = function(recipes_data) {
     return recipes_data.map((recipes_data) => {
         const {
+            analyzedInstructions,
             title,
             readyInMinutes,
             aggregateLikes,
@@ -54,6 +55,7 @@ getAllData = function(recipes_data) {
             servings
         } = recipes_data.data;
         return {
+            analyzedInstructions: analyzedInstructions,
             image: image,
             name: title,
             preperation_time: readyInMinutes,
