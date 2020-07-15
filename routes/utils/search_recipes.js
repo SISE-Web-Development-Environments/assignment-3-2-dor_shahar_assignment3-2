@@ -39,14 +39,28 @@ getRelevantData = function(recipes_data) {
     });
 }
 
-getExtraData = function(recipes_data) {
+getAllData = function(recipes_data) {
     return recipes_data.map((recipes_data) => {
         const {
+            title,
+            readyInMinutes,
+            aggregateLikes,
+            vegeterian,
+            vegan,
+            glutenFree,
+            image,
             extendedIngredients,
             instructions,
             servings
         } = recipes_data.data;
         return {
+            image: image,
+            name: title,
+            preperation_time: readyInMinutes,
+            popularity: aggregateLikes,
+            vegan: vegan,
+            Vegetarian: vegeterian,
+            isGlutenFree: glutenFree,
             ingredients: extendedIngredients,
             instructions: instructions,
             serving_num: servings

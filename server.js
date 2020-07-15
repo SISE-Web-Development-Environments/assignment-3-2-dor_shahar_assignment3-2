@@ -23,11 +23,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(session({
-  cookieName: "session",
-  secret: process.env.COOKIE_SECRET,
-  duration: 10 * 60 * 1000,
-  activeDuration: 0
-})
+    cookieName: "session",
+    secret: process.env.COOKIE_SECRET,
+    duration: 10 * 60 * 1000,
+    activeDuration: 0
+  })
 );
 
 app.use("/user", users_route);
