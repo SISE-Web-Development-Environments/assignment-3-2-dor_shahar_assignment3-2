@@ -15,6 +15,21 @@ router.get("/randomRecipes", async function (req, res) {
     })    
 });
 
+ /** Returns the Misiing Details of the recipe for display */
+ router.get("/recipeDetails", async function (req, res) {
+    try {
+        let recipe_id = req.body.recipe_id;
+        let user_id = req.user.user_id;
+        updateUserLastViewed(user_id, recipe_id);
+        addToSeen(user_id, recipe_id);
+        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);
+        res.status(200).send(recipeDeatails);
+    } catch(err){
+        res.status(404).send("Error: Recipe wasn't found");
+    }
+
+});
+
 
 router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (req, res) {
     try{

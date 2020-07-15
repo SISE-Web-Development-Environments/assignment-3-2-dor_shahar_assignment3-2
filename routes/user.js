@@ -100,21 +100,6 @@ router.get("/myFamilyRecipes", async function (req, res, next) {
     }
 });
 
- /** Returns the Misiing Details of the recipe for display */
- router.post("/recipeDetailes", async function (req, res) {
-    try {
-        let recipe_id = req.body.recipe_id;
-        let user_id = req.user.user_id;
-        updateUserLastViewed(user_id, recipe_id);
-        addToSeen(user_id, recipe_id);
-        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);
-        res.status(200).send(recipeDeatails);
-    } catch(err){
-        res.status(404).send("Error: Recipe wasn't found");
-    }
-
-});
-
 
 getUserRecipes = async function(user_id) {
     my_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[recipes] WHERE [created_by]=${user_id}`)
