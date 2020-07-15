@@ -1,6 +1,9 @@
 var axios = require("axios");
 
 exports.getRecipeDetails = async function(recipes_id) {
+    var recipes_id = recipes_id.filter(function (el) {
+        return el != null;
+    });
     let promises = [];
     recipes_id.map((id) => promises.push(axios.get(`https://api.spoonacular.com/recipes/${id}/information?apiKey=${process.env.spooncular_apiKey}`)));
     let recipes_info = await Promise.all(promises);
