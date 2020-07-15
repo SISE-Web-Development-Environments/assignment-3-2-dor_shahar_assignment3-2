@@ -16,13 +16,19 @@ router.get("/randomRecipes", async function (req, res) {
 });
 
  /** Returns the Misiing Details of the recipe for display */
- router.get("/recipeDetails", async function (req, res) {
+ router.get("/recipeDetails/:recipe_id", async function (req, res) {
     try {
-        let recipe_id = req.body.recipe_id;
-        let user_id = req.user.user_id;
-        updateUserLastViewed(user_id, recipe_id);
-        addToSeen(user_id, recipe_id);
-        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);
+        let recipe_id = req.params.recipe_id;
+        if(req.session && req.session.user_id){
+            const id = req.session.user_id;
+            const user = (await DButils.execQuery(`SELECT * FROM [dbo].[users] WHERE user_id=${id}`));
+            if(user.length>0){
+                let user_id = user[0].id;
+                updateUserLastViewed(user_id, recipe_id);
+                addToSeen(user_id, recipe_id);
+            }
+        }
+        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);      
         res.status(200).send(recipeDeatails);
     } catch(err){
         res.status(404).send("Error: Recipe wasn't found");
@@ -94,6 +100,24 @@ extractResultId = function(search_results) {
     });
 
     return id_res;
+}
+
+/** updates the last viewd recipes according to the current viewed recipe */
+updateUserLastViewed = async function(user_id, recipe_id){
+    let user_last_viewd = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
+    user_last_viewd = arrangeLastViewd(recipe_id, user_last_viewd[0])
+    await DButils.execQuery(`UPDATE [dbo].[users] SET ls_1=${user_last_viewd.ls_1}, ls_2=${user_last_viewd.ls_2}, ls_3=${user_last_viewd.ls_3} WHERE user_id = ${user_id}`);
+}
+
+/** adds the given recipe to the user seen recipes in case it not already there */
+addToSeen = async function(user_id, recipe_id){
+    try{
+    let getSeenByUser = await DButils.execQuery(`SELECT * FROM [dbo].[Views] WHERE user_id = ${user_id} AND recipe_id = ${recipe_id}`);
+    if(getSeenByUser.length == 0)
+        await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_id}')`);
+    } catch(err){
+        console.log(err.message)
+    }
 }
 
 module.exports = router;

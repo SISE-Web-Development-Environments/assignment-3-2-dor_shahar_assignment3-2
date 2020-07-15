@@ -208,13 +208,6 @@ createRecipe = async function(recipe_data, creator_user_id) {
         )`)
 }
 
-/** updates the last viewd recipes according to the current viewed recipe */
-updateUserLastViewed = async function(user_id, recipe_id){
-    let user_last_viewd = await DButils.execQuery(`SELECT ls_1, ls_2, ls_3 FROM [dbo].[users] WHERE user_id = ${user_id}`);
-    user_last_viewd = arrangeLastViewd(recipe_id, user_last_viewd[0])
-    await DButils.execQuery(`UPDATE [dbo].[users] SET ls_1=${user_last_viewd.ls_1}, ls_2=${user_last_viewd.ls_2}, ls_3=${user_last_viewd.ls_3} WHERE user_id = ${user_id}`);
-}
-
 /** areange the last viewd recipes according to the current viewed recipe */
 arrangeLastViewd = function(recipe_id, last_viewd){
     orgenaized = {
@@ -229,17 +222,6 @@ arrangeLastViewd = function(recipe_id, last_viewd){
         return last_viewd;
     }
     return orgenaized;
-}
-
-/** adds the given recipe to the user seen recipes in case it not already there */
-addToSeen = async function(user_id, recipe_id){
-    try{
-    let getSeenByUser = await DButils.execQuery(`SELECT * FROM [dbo].[Views] WHERE user_id = ${user_id} AND recipe_id = ${recipe_id}`);
-    if(getSeenByUser.length == 0)
-        await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_id}')`);
-    } catch(err){
-        console.log(err.message)
-    }
 }
 
 

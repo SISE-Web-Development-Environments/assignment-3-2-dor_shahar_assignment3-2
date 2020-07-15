@@ -8,7 +8,7 @@ var session = require("client-sessions")
 require("dotenv").config();
 
 var app = express();
-var port = server.listen(process.env.PORT || 3000);
+var port = process.env.PORT || 3000;
 
 var cors = require('cors');
 app.use(cors());
