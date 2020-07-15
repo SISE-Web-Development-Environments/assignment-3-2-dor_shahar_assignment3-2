@@ -88,7 +88,7 @@ createUser = async function(user_data) {
 
     hash_password = CryptoJS.SHA3(password).toString(CryptoJS.enc.Base64);
 
-    await DButils.execQuery(`INSERT INTO [dbo].[users] VALUES ('${username}','${hash_password}','${email}','${firstname}','${lastname}','${country}',NULL,NULL,NULL)`);
+    await DButils.execQuery(`INSERT INTO [dbo].[users] VALUES ('${username}','${hash_password}','${email}','${firstname}','${lastname}','${country}',NULL,NULL,NULL,'${profile_image}')`);
 }
 
 module.exports = router;
