@@ -124,6 +124,7 @@ addToSeen = async function(user_id, recipe_id){
 relevantData = async function(recipes_data) {
     return recipes_data.map((recipes_data) => {
         const {
+            id,
             title,
             readyInMinutes,
             aggregateLikes,
@@ -133,6 +134,7 @@ relevantData = async function(recipes_data) {
             image
         } = recipes_data;
         return {
+            id: id,
             image: image,
             name: title,
             preperation_time: readyInMinutes,

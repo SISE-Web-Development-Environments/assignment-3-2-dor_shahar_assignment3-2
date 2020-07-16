@@ -22,6 +22,7 @@ exports.getRecipeExtraDetails = async function(recipes_id) {
 getRelevantData = function(recipes_data) {
     return recipes_data.map((recipes_data) => {
         const {
+            id,
             title,
             readyInMinutes,
             aggregateLikes,
@@ -29,8 +30,9 @@ getRelevantData = function(recipes_data) {
             vegan,
             glutenFree,
             image
-        } = recipes_data.data;
+        } = recipes_data;
         return {
+            id: id,
             image: image,
             name: title,
             preperation_time: readyInMinutes,
