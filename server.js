@@ -26,7 +26,10 @@ app.use(session({
     cookieName: "session",
     secret: process.env.COOKIE_SECRET,
     duration: 10 * 60 * 1000,
-    activeDuration: 0
+    activeDuration: 0,
+    cookie: {
+      httpOnly: false
+    }
   })
 );
 
