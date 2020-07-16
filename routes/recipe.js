@@ -6,14 +6,14 @@ var searcher = require("./utils/search_recipes");
 
 /** returns 3 random recpies */
 router.get("/randomRecipes", async function (req, res) {
-    axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`)
-    .then(resp => {
-        let recipeDeatails = await searcher.getRelevantData(resp.data.recipes);
+    try {
+        let response = await axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`);
+        let recipeDeatails = await relevantData(response.data.recipes);
         res.status(200).send(recipeDeatails)
-    })
-    .catch(error => {
+    } catch(error) {
+        console.log(error.message)
         res.send('503')
-    })    
+    }   
 });
 
  /** Returns the Misiing Details of the recipe for display */
@@ -119,6 +119,29 @@ addToSeen = async function(user_id, recipe_id){
     } catch(err){
         console.log(err.message)
     }
+}
+
+relevantData = async function(recipes_data) {
+    return recipes_data.map((recipes_data) => {
+        const {
+            title,
+            readyInMinutes,
+            aggregateLikes,
+            vegeterian,
+            vegan,
+            glutenFree,
+            image
+        } = recipes_data;
+        return {
+            image: image,
+            name: title,
+            preperation_time: readyInMinutes,
+            popularity: aggregateLikes,
+            vegan: vegan,
+            Vegetarian: vegeterian,
+            isGlutenFree: glutenFree
+        }
+    });
 }
 
 module.exports = router;
