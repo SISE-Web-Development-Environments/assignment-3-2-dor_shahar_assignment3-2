@@ -11,8 +11,15 @@ var app = express();
 var port = process.env.PORT || 3000;
 
 var cors = require('cors');
-app.use(cors());
-app.options("*", cors());
+
+const corsConfig = {
+  origin: true,
+  credentials: true
+};
+
+app.use(cors(corsConfig));
+app.options("*", cors(corsConfig));
+
 
 users_route = require("./routes/user");
 recipes_route = require("./routes/recipe");
