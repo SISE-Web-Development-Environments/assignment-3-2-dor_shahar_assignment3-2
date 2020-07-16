@@ -8,7 +8,8 @@ var searcher = require("./utils/search_recipes");
 router.get("/randomRecipes", async function (req, res) {
     axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`)
     .then(resp => {
-        res.status(200).send(resp.data.recipes)
+        let recipeDeatails = await searcher.getRelevantData(resp.data.recipes);
+        res.status(200).send(recipeDeatails)
     })
     .catch(error => {
         res.send('503')
