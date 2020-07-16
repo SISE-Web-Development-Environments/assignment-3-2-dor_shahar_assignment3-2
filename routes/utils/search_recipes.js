@@ -30,7 +30,7 @@ getRelevantData = function(recipes_data) {
             vegan,
             glutenFree,
             image
-        } = recipes_data;
+        } = recipes_data.data;
         return {
             id: id,
             image: image,
