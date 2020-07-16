@@ -12,14 +12,16 @@ var port = process.env.PORT || 3000;
 
 var cors = require('cors');
 
-const corsConfig = {
-  origin: true,
-  credentials: true
-};
+// const corsConfig = {
+//   origin: true,
+//   credentials: true
+// };
 
-app.use(cors(corsConfig));
-app.options("*", cors(corsConfig));
-
+// app.use(cors(corsConfig));
+// app.options("*", cors(corsConfig));
+var cors = require('cors');
+app.use(cors());
+app.options("*", cors());
 
 users_route = require("./routes/user");
 recipes_route = require("./routes/recipe");
