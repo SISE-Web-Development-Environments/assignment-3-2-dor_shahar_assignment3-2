@@ -49,7 +49,7 @@ router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (r
         recipes_info =  await searchForRecipes(search_params);
         res.send(recipes_info);
     } catch(err) {
-        res.status(404).sendStatus('There are no recipes that relates to the given query')
+        res.status(503);
     }
 });
 
