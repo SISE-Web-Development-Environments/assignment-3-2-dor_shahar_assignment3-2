@@ -6,6 +6,7 @@ var router = express.Router();
 var bodyParser = require("body-parser");
 var app = express()
 var searcher = require("./utils/search_recipes")
+var helper = require("../routes/utils/helper")
 require("dotenv").config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -46,7 +47,7 @@ router.post('/addToFavorites', async function(req, res, next) {
         let user_id = req.user.user_id;
         let recipe_to_favorites = req.body.recipe;
         
-        if(!await isFavorite(user_id, recipe_to_favorites)) {
+        if(!await helper.isFavorite(user_id, recipe_to_favorites)) {
             await DButils.execQuery(`INSERT INTO [dbo].[favorites] VALUES ('${user_id}','${recipe_to_favorites}')`);
             res.status(200).send("Added to favorites successfully");
         }
@@ -163,13 +164,6 @@ getUserFamilyRecipes = async function(user_id) {
             preperationEvents: preperation_events
         }
     })
-}
-
-isFavorite = async function(user_id, recipe_id) {
-    result = await DButils.execQuery(`SELECT * FROM [dbo].[favorites] WHERE [user_id]=${user_id} AND [recipe_id]=${recipe_id}`);
-    if(result.length == 0)
-        return false;
-    return true;
 }
 
 getUserfavorites = async function(user_id) {

@@ -3,12 +3,13 @@ const axios = require('axios');
 var express = require("express");
 var router = express.Router();
 var searcher = require("./utils/search_recipes");
+var helper = require("./utils/helper");
 
 /** returns 3 random recpies */
 router.get("/randomRecipes", async function (req, res) {
     try {
         let response = await axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`);
-        let recipeDeatails = await relevantData(response.data.recipes);
+        let recipeDeatails = await relevantData(response.data.recipes, req.session);
         res.status(200).send(recipeDeatails)
     } catch(error) {
         console.log(error.message)
@@ -46,10 +47,10 @@ router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (r
         search_params.instructionsRequired = true;
         extractExtraParams(req.query, search_params);
 
-        recipes_info =  await searchForRecipes(search_params);
+        recipes_info =  await searchForRecipes(search_params, req.session);
         res.send(recipes_info);
     } catch(err) {
-        res.status(404).sendStatus('There are no recipes that relates to the given query')
+        res.sendStatus(503);
     }
 });
 
@@ -80,7 +81,7 @@ extractExtraParams = function(query_params, search_params) {
     });
 }
 
-searchForRecipes = async function(search_params) {
+searchForRecipes = async function(search_params, session) {
     let search_response = await axios.get(
         `https://api.spoonacular.com/recipes/search?apiKey=${process.env.spooncular_apiKey}`,
         {
@@ -89,7 +90,7 @@ searchForRecipes = async function(search_params) {
     );
 
     const recipes_id_list = extractResultId(search_response);
-    let info_arr = await searcher.getRecipeDetails(recipes_id_list);
+    let info_arr = await searcher.getRecipeDetails(recipes_id_list, session);
     return info_arr;
 }
 
@@ -121,29 +122,36 @@ addToSeen = async function(user_id, recipe_id){
     }
 }
 
-relevantData = async function(recipes_data) {
-    return recipes_data.map((recipes_data) => {
+relevantData = async function(recipes_data, session) {
+    let promises = [];
+    recipes_data.map((recipes_data) => promises.push(new Promise(async function(resolve, reject){
         const {
             id,
             title,
             readyInMinutes,
             aggregateLikes,
-            vegeterian,
+            vegetarian,
             vegan,
             glutenFree,
             image
         } = recipes_data;
-        return {
+        let isFavorite = false;
+        if(session && session.user_id)
+            isFavorite = await helper.isFavorite(session.user_id, id);
+        resolve( {
             id: id,
             image: image,
             name: title,
             preperation_time: readyInMinutes,
             popularity: aggregateLikes,
             vegan: vegan,
-            Vegetarian: vegeterian,
-            isGlutenFree: glutenFree
-        }
-    });
+            Vegetarian: vegetarian,
+            isGlutenFree: glutenFree,
+            isFavorite: isFavorite
+        });
+    })));
+    let res = await Promise.all(promises);
+    return res;
 }
 
 module.exports = router;
