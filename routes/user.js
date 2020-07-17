@@ -22,7 +22,7 @@ router.use(async function (req, res, next) {
                 next();
             }
         } else{
-            res.status(401).send("Unauthorized");
+            res.send("401");
         }
     } catch(err) {
         next(err)
