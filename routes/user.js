@@ -59,6 +59,23 @@ router.post('/addToFavorites', async function(req, res, next) {
     }
 });
 
+router.post('/addToSeen', async function(req, res, next) {
+    try{
+        let user_id = req.user.user_id;
+        let recipe_to_seen = req.body.recipe;
+        
+        if(!await helper.isSeen(user_id, recipe_to_seen)) {
+            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
+            res.status(200).send("Added to Seen successfully");
+        }
+        else
+            res.status(401).send("Recipe is already in Seen");
+        
+    } catch(err) {
+        next(err);
+    }
+});
+
 router.get("/getFavorites", async function (req, res, next) {
     try{
         let user_id = req.user.user_id;

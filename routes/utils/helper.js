@@ -7,6 +7,13 @@ exports.isFavorite = async function(user_id, recipe_id) {
     return true;
 }
 
+exports.isSeen = async function(user_id, recipe_id) {
+    result = await DButils.execQuery(`SELECT * FROM [dbo].[Views] WHERE [user_id]=${user_id} AND [recipe_id]=${recipe_id}`);
+    if(result.length == 0)
+        return false;
+    return true;
+}
+
 exports.extractInfo = async function(recipes_data, session) {
     const {
         id,
