@@ -34,8 +34,11 @@ getRelevantData = async function(recipes_data, session) {
             image
         } = recipes_data.data;
         let isFavorite = false;
-        if(session && session.user_id)
+        let isSeen = false;
+        if(session && session.user_id) {
             isFavorite = await helper.isFavorite(session.user_id, id);
+            isSeen = await helper.isSeen(session.user_id, id);
+        }
         resolve( {
             id: id,
             image: image,
@@ -45,7 +48,8 @@ getRelevantData = async function(recipes_data, session) {
             vegan: vegan,
             Vegetarian: vegetarian,
             isGlutenFree: glutenFree,
-            isFavorite: isFavorite
+            isFavorite: isFavorite,
+            isSeen: isSeen
         });
     })));
     let res = await Promise.all(promises);

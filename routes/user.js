@@ -59,10 +59,27 @@ router.post('/addToFavorites', async function(req, res, next) {
     }
 });
 
+router.post('/addToSeen', async function(req, res, next) {
+    try{
+        let user_id = req.user.user_id;
+        let recipe_to_seen = req.body.recipe;
+        
+        if(!await helper.isSeen(user_id, recipe_to_seen)) {
+            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
+            res.status(200).send("Added to Seen successfully");
+        }
+        else
+            res.status(401).send("Recipe is already in Seen");
+        
+    } catch(err) {
+        next(err);
+    }
+});
+
 router.get("/getFavorites", async function (req, res, next) {
     try{
         let user_id = req.user.user_id;
-        my_favorites = await getUserfavorites(user_id);
+        my_favorites = await getUserfavorites(user_id, req.session);
         res.send(my_favorites);
     } catch (err) {
         next(err);
@@ -112,22 +129,25 @@ getUserRecipes = async function(user_id) {
             instructions,
             preperation_time,
             popularity,
-            vegeterian,
+            Vegetarian,
             vegan,
-            gluten,
+            isGlutenFree,
             num_of_dishes
         } = my_recipes
         return {
             image: image,
             name: name,
+            title: name,
             ingredients: ingredients,
             instructions: instructions,
-            preperationTime: preperation_time,
+            preperation_time: preperation_time,
             popularity: popularity,
-            vegeterian: vegeterian,
+            Vegetarian: Vegetarian,
             vegan: vegan,
-            isGlutenFree: gluten,
-            dishesNum: num_of_dishes
+            isGlutenFree: isGlutenFree,
+            dishesNum: num_of_dishes,
+            isFavorite: false,
+            isSeen: false
         }
     })
 }
@@ -147,7 +167,7 @@ getUserFamilyRecipes = async function(user_id) {
             gluten,
             num_of_dishes,
             given_by,
-            preperation_events
+            preparation_events
         } = my_recipes
         return {
             image: image,
@@ -161,18 +181,18 @@ getUserFamilyRecipes = async function(user_id) {
             isGlutenFree: gluten,
             dishesNum: num_of_dishes,
             givenBy: given_by,
-            preperationEvents: preperation_events
+            preperationEvents: preparation_events
         }
     })
 }
 
-getUserfavorites = async function(user_id) {
+getUserfavorites = async function(user_id, session) {
     my_favorites = await DButils.execQuery(`SELECT [recipe_id] FROM [dbo].[favorites] WHERE [user_id]=${user_id}`);
     recipe_id = []
     my_favorites.map((recipe) => {
         recipe_id.push(recipe.recipe_id);
     });
-    favorite_recipes = await searcher.getRecipeDetails(recipe_id);
+    favorite_recipes = await searcher.getRecipeDetails(recipe_id, session);
     return favorite_recipes;
 }
 
