@@ -25,7 +25,8 @@ router.get("/randomRecipes", async function (req, res) {
             const user = (await DButils.execQuery(`SELECT * FROM [dbo].[users] WHERE user_id=${id}`));
             if(user.length>0){
                 let user_id = user[0].user_id;
-                updateUserLastViewed(user_id, recipe_id);
+                if (recipe_id >= 0)
+                    updateUserLastViewed(user_id, recipe_id);
                 addToSeen(user_id, recipe_id);
             }
         }
