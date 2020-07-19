@@ -22,7 +22,7 @@ router.use(async function (req, res, next) {
                 next();
             }
         } else{
-            res.sendStatus(401);
+            res.send("401");
         }
     } catch(err) {
         next(err)
