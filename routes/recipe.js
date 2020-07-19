@@ -29,7 +29,13 @@ router.get("/randomRecipes", async function (req, res) {
                 addToSeen(user_id, recipe_id);
             }
         }
-        let recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);      
+        let recipeDeatails = undefined;
+        if (recipe_id < 0) {
+            recipe_id = recipe_id * -1;
+            recipeDeatails = (await DButils.execQuery(`SELECT * FROM [dbo].[recipes] WHERE recipe_id=${recipe_id}`));
+        } else {
+            recipeDeatails = await searcher.getRecipeExtraDetails([recipe_id]);      
+        }
         res.status(200).send(recipeDeatails);
     } catch(err){
         res.status(404).send("Error: Recipe wasn't found");
@@ -117,7 +123,7 @@ addToSeen = async function(user_id, recipe_id){
     if(getSeenByUser.length == 0)
         await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_id}')`);
     } catch(err){
-        console.log(err.message)
+        console.log(err.message);
     }
 }
 
