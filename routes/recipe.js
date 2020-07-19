@@ -19,7 +19,7 @@ router.get("/randomRecipes", async function (req, res) {
  /** Returns the Misiing Details of the recipe for display */
  router.get("/recipeDetails/:recipe_id", async function (req, res) {
     try {
-        let recipe_id = req.params.recipe_id;
+        let recipe_id = parseInt(req.params.recipe_id);
         if(req.session && req.session.user_id){
             const id = req.session.user_id;
             const user = (await DButils.execQuery(`SELECT * FROM [dbo].[users] WHERE user_id=${id}`));

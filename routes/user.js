@@ -65,11 +65,11 @@ router.post('/addToSeen', async function(req, res, next) {
         let recipe_to_seen = req.body.recipe;
         
         if(!await helper.isSeen(user_id, recipe_to_seen)) {
-            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);
-            res.status(200).send("Added to Seen successfully");
+            await DButils.execQuery(`INSERT INTO [dbo].[Views] VALUES ('${user_id}','${recipe_to_seen}')`);           
         }
-        else
-            res.status(401).send("Recipe is already in Seen");
+        res.status(200).send("Added to Seen successfully");
+        // else
+        //     res.status(401).send("Recipe is already in Seen");
         
     } catch(err) {
         next(err);
