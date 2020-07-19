@@ -123,6 +123,7 @@ getUserRecipes = async function(user_id) {
     my_recipes = await DButils.execQuery(`SELECT * FROM [dbo].[recipes] WHERE [created_by]=${user_id}`)
     return my_recipes.map((my_recipes) => {
         const {
+            recipe_id,
             image,
             name,
             ingredients,
@@ -135,6 +136,7 @@ getUserRecipes = async function(user_id) {
             num_of_dishes
         } = my_recipes
         return {
+            id: "-"+recipe_id,
             image: image,
             name: name,
             title: name,
