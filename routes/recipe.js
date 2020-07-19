@@ -7,12 +7,11 @@ var helper = require("./utils/helper");
 
 /** returns 3 random recpies */
 router.get("/randomRecipes", async function (req, res) {
-    try {
+    try {       
         let response = await axios.get(`https://api.spoonacular.com/recipes/random?number=3&apiKey=${process.env.spooncular_apiKey}`);
         let recipeDeatails = await relevantData(response.data.recipes, req.session);
         res.status(200).send(recipeDeatails)
     } catch(error) {
-        console.log(error.message)
         res.send('503')
     }   
 });

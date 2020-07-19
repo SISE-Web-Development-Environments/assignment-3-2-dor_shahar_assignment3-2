@@ -51,7 +51,7 @@ app.get("/", function(req, res) {
 
 // error middleware
 app.use(function(err, req, res, next) {
-    res.status(500).send("Error: " + err.message);
+    res.send("500");
 });
 
 app.listen(port, () => {
