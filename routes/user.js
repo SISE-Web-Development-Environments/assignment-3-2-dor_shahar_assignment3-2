@@ -51,8 +51,6 @@ router.post('/addToFavorites', async function(req, res, next) {
             await DButils.execQuery(`INSERT INTO [dbo].[favorites] VALUES ('${user_id}','${recipe_to_favorites}')`);
             res.status(200).send("Added to favorites successfully");
         }
-        else
-            res.status(401).send("Recipe is already in favorites");
         
     } catch(err) {
         next(err);

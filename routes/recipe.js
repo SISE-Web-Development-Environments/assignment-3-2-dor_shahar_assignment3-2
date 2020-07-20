@@ -56,7 +56,7 @@ router.get("/searchRecipe/query/:searchQuery/recipesNum/:num", async function (r
         recipes_info =  await searchForRecipes(search_params, req.session);
         res.send(recipes_info);
     } catch(err) {
-        res.sendStatus(503);
+        res.send('503');
     }
 });
 
